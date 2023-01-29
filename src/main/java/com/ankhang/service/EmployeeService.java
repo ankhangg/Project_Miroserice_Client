@@ -1,9 +1,13 @@
 package com.ankhang.service;
 
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,6 +17,7 @@ import com.ankhang.feigncclient.InfoClient;
 import com.ankhang.model.EmployeeModel;
 import com.ankhang.model.InfoModel;
 import com.ankhang.repository.EmployeeRepository;
+
 
 @Service
 public class EmployeeService {
@@ -31,8 +36,11 @@ public class EmployeeService {
 	private InfoClient infoClient;
 	
 	// case dung restTemplate => webClient
-	//@Autowired
-	//private RestTemplate restTemplate;
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@Autowired
+	private DiscoveryClient discoveryClient;
 	
 //	@Value("${info.url}")
 //	private String addressURL;
@@ -55,7 +63,10 @@ public class EmployeeService {
     	try {
     		// infoModel = webClient.get().uri("/infos/"+id).retrieve().bodyToMono(InfoModel.class).block();
     		// dung FeignClient
-    		infoModel = infoClient.getInfoDetail(id);
+    		//infoModel = infoClient.getInfoDetail(id);
+    		
+    		//case dung restTemplate 02 
+    		infoModel = getInfoModelByIdUsingRestTemplate(id);
     	} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -63,4 +74,19 @@ public class EmployeeService {
     	employeeModel.setInfoModel(infoModel);
     	return employeeModel;
     }
+    
+    public InfoModel getInfoModelByIdUsingRestTemplate(Long id) {
+    	
+    	//balance load
+    	//getInstances("INFO-APP"); need to correct capitalize letter
+    	List<ServiceInstance> instances = discoveryClient.getInstances("INFO-APP");
+    	ServiceInstance serviceInstance = instances.get(0);
+    	
+    	String uri = serviceInstance.getUri().toString();
+    	System.out.println("url>>>>>>:" + uri);
+    	
+    	return restTemplate.getForObject(uri+"/info-app/infos/{id}", InfoModel.class, id);
+    }
+    
+    
 }
