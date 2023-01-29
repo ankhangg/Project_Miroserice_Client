@@ -21,10 +21,10 @@ public class ClientEmployee_Config {
 	}
 	
 	//chỗ này rút gọn cho code đẹp hơn // case dung restTemplate => webClient
-//	@Bean
-//	public RestTemplate restTemplate() {
-//		return new RestTemplate();
-//	}
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate();
+	}
 	
 	@Bean
 	public WebClient webClient() {
