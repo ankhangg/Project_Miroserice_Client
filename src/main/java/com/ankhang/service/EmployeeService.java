@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -41,6 +42,9 @@ public class EmployeeService {
 	
 	@Autowired
 	private DiscoveryClient discoveryClient;
+	
+	@Autowired
+	private LoadBalancerClient loadBalancerClient;
 	
 //	@Value("${info.url}")
 //	private String addressURL;
@@ -79,13 +83,26 @@ public class EmployeeService {
     	
     	//balance load
     	//getInstances("INFO-APP"); need to correct capitalize letter
-    	List<ServiceInstance> instances = discoveryClient.getInstances("INFO-APP");
-    	ServiceInstance serviceInstance = instances.get(0);
+//    	List<ServiceInstance> instances = discoveryClient.getInstances("INFO-APP");
+//    	ServiceInstance serviceInstance = instances.get(0);
+//    	
+//    	String uri = serviceInstance.getUri().toString();
     	
-    	String uri = serviceInstance.getUri().toString();
-    	System.out.println("url>>>>>>:" + uri);
+    	//Use loadBalancerClient
+//    	ServiceInstance serviceInstance = loadBalancerClient.choose("INFO-APP");
+//    	String uri = serviceInstance.getUri().toString();
+//    	
+//    	String contextRoot = serviceInstance.getMetadata().get("configPath");
+//    	String username = serviceInstance.getMetadata().get("userankhang");
+//    	System.out.println("url>>>>>>:" + uri+contextRoot);
     	
-    	return restTemplate.getForObject(uri+"/info-app/infos/{id}", InfoModel.class, id);
+    	//return restTemplate.getForObject(uri+"/info-app/infos/{id}", InfoModel.class, id);
+    	
+    	//Can use like this with anotation @LoadBalance in restTemplate config
+    	//Need comment all code before
+    	return restTemplate.getForObject("http://INFO-APP/info-app/infos/{id}", InfoModel.class, id);
+    	
+    	//return restTemplate.getForObject(uri+contextRoot+"/infos/{id}", InfoModel.class, id);
     }
     
     
