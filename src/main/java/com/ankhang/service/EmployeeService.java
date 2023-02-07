@@ -70,7 +70,9 @@ public class EmployeeService {
     		//infoModel = infoClient.getInfoDetail(id);
     		
     		//case dung restTemplate 02 
-    		infoModel = getInfoModelByIdUsingRestTemplate(id);
+    		//infoModel = getInfoModelByIdUsingRestTemplate(id);
+    	
+    		infoModel = infoClient.getInfoDetail(id);
     	} catch (Exception e) {
 			e.printStackTrace();
 		}
