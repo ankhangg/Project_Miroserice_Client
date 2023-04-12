@@ -65,12 +65,14 @@ public class EmployeeService {
     	
     	InfoModel infoModel = new InfoModel();
     	try {
-    		// infoModel = webClient.get().uri("/infos/"+id).retrieve().bodyToMono(InfoModel.class).block();
+    		//case dung webClient
+    		//infoModel = webClient.get().uri("/infos/"+id).retrieve().bodyToMono(InfoModel.class).block();
+    		
     		// dung FeignClient
     		//infoModel = infoClient.getInfoDetail(id);
     		
     		//case dung restTemplate 02 
-    		//infoModel = getInfoModelByIdUsingRestTemplate(id);
+    	     //infoModel = getInfoModelByIdUsingRestTemplate(id);
     	
     		infoModel = infoClient.getInfoDetail(id);
     	} catch (Exception e) {
