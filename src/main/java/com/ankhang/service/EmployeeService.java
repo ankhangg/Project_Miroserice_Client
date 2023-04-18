@@ -19,6 +19,8 @@ import com.ankhang.model.EmployeeModel;
 import com.ankhang.model.InfoModel;
 import com.ankhang.repository.EmployeeRepository;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 
 @Service
 public class EmployeeService {
@@ -64,7 +66,8 @@ public class EmployeeService {
     	//InfoModel infoModel = restTemplate.getForObject("/infos/{id}", InfoModel.class, id);
     	
     	InfoModel infoModel = new InfoModel();
-    	try {
+    	// comment try catch to use @CircuitBreaker
+//    	try {
     		//case dung webClient
     		//infoModel = webClient.get().uri("/infos/"+id).retrieve().bodyToMono(InfoModel.class).block();
     		
@@ -75,9 +78,9 @@ public class EmployeeService {
     	     //infoModel = getInfoModelByIdUsingRestTemplate(id);
     	
     		infoModel = infoClient.getInfoDetail(id);
-    	} catch (Exception e) {
-			e.printStackTrace();
-		}
+//    	} catch (Exception e) {
+//			e.printStackTrace();
+//		}
     	
     	employeeModel.setInfoModel(infoModel);
     	return employeeModel;
