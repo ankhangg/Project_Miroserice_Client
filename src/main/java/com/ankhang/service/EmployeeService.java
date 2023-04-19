@@ -57,6 +57,16 @@ public class EmployeeService {
 //		this.restTemplate = builder.rootUri(addressURL).build();
 //	}
 	
+	public EmployeeModel getEmployeeById_NoCallServer(Long id) {
+		Employee employee = employeeRepository.findEmpById(id);
+		EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
+		InfoModel info = new InfoModel();
+		info.setInfoAge("SERVER NOT RESPONE");
+		info.setInfoPhone("SERVER NOT RESPONE");
+		employeeModel.setInfoModel(info);
+		return employeeModel;
+	}
+	
     public EmployeeModel getEmployeeById(Long id) {
     	Employee employee = employeeRepository.findEmpById(id);
     	
