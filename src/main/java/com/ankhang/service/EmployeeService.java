@@ -18,6 +18,11 @@ import com.ankhang.feigncclient.InfoClient;
 import com.ankhang.model.EmployeeModel;
 import com.ankhang.model.InfoModel;
 import com.ankhang.repository.EmployeeRepository;
+import com.netflix.discovery.BackupRegistry;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 
 
 @Service
@@ -46,6 +51,8 @@ public class EmployeeService {
 	@Autowired
 	private LoadBalancerClient loadBalancerClient;
 	
+	private ObservationRegistry observationRegistry;
+	
 //	@Value("${info.url}")
 //	private String addressURL;
 	
@@ -55,6 +62,18 @@ public class EmployeeService {
 //		this.restTemplate = builder.rootUri(addressURL).build();
 //	}
 	
+	public EmployeeModel getEmployeeById_NoCallServer(Long id) {
+		Employee employee = employeeRepository.findEmpById(id);
+		EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
+		InfoModel info = new InfoModel();
+		info.setInfoAge("SERVER NOT RESPONE");
+		info.setInfoPhone("SERVER NOT RESPONE");
+		employeeModel.setInfoModel(info);
+		return employeeModel;
+	}
+	
+	/* Backup getEmployeeById Before Add Trace ID Start */
+	/*
     public EmployeeModel getEmployeeById(Long id) {
     	Employee employee = employeeRepository.findEmpById(id);
     	
@@ -64,7 +83,8 @@ public class EmployeeService {
     	//InfoModel infoModel = restTemplate.getForObject("/infos/{id}", InfoModel.class, id);
     	
     	InfoModel infoModel = new InfoModel();
-    	try {
+    	// comment try catch to use @CircuitBreaker
+//    	try {
     		//case dung webClient
     		//infoModel = webClient.get().uri("/infos/"+id).retrieve().bodyToMono(InfoModel.class).block();
     		
@@ -75,13 +95,32 @@ public class EmployeeService {
     	     //infoModel = getInfoModelByIdUsingRestTemplate(id);
     	
     		infoModel = infoClient.getInfoDetail(id);
-    	} catch (Exception e) {
-			e.printStackTrace();
-		}
+//    	} catch (Exception e) {
+//			e.printStackTrace();
+//		}
     	
     	employeeModel.setInfoModel(infoModel);
     	return employeeModel;
     }
+    */
+    /* Backup getEmployeeById Before Add Trace ID End */
+	
+    public EmployeeModel getEmployeeById(Long id) {
+        Observation inventoryServiceObservation = Observation.createNotStarted("ankhang_stanid_call_infoservice",
+                this.observationRegistry);
+        
+        inventoryServiceObservation.lowCardinalityKeyValue("call", "info-app");
+        inventoryServiceObservation.start();
+        return inventoryServiceObservation.observe(() -> {
+        	Employee employee = employeeRepository.findEmpById(id);
+        	EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
+        	InfoModel infoModel = new InfoModel();
+        	infoModel = infoClient.getInfoDetail(id);
+        	employeeModel.setInfoModel(infoModel);
+            return employeeModel;
+        });    
+    }
+	
     
     public InfoModel getInfoModelByIdUsingRestTemplate(Long id) {
     	
