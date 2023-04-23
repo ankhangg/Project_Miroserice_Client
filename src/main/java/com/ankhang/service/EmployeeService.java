@@ -1,6 +1,7 @@
 package com.ankhang.service;
 
 import java.util.List;
+import java.time.Duration;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +21,17 @@ import com.ankhang.model.InfoModel;
 import com.ankhang.repository.EmployeeRepository;
 import com.netflix.discovery.BackupRegistry;
 
+import brave.Span;
+import brave.Tracer;
+import brave.propagation.TraceContext;
+import brave.propagation.TraceContextOrSamplingFlags;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.micrometer.core.ipc.http.HttpSender.Method;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+
+
+
 
 
 @Service
@@ -52,6 +61,10 @@ public class EmployeeService {
 	private LoadBalancerClient loadBalancerClient;
 	
 	private ObservationRegistry observationRegistry;
+	
+    @Autowired
+    private Tracer tracer;
+    
 	
 //	@Value("${info.url}")
 //	private String addressURL;
@@ -105,22 +118,51 @@ public class EmployeeService {
     */
     /* Backup getEmployeeById Before Add Trace ID End */
 	
+	/* Method getEmployeeById not Set span name Start */
+//	public EmployeeModel getEmployeeById(Long id) {
+//	    Observation inventoryServiceObservation = Observation.createNotStarted("ankhang_stanid_call_infoservice",
+//	            this.observationRegistry);
+//	    inventoryServiceObservation.lowCardinalityKeyValue("call_to_info-app", "info-app");
+//	    inventoryServiceObservation.start();
+//	   
+//	    try {
+//	        Employee employee = employeeRepository.findEmpById(id);
+//	        EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
+//	        InfoModel infoModel = infoClient.getInfoDetail(id);
+//	        employeeModel.setInfoModel(infoModel);
+//	        return employeeModel;
+//	    } finally {
+//	        inventoryServiceObservation.stop();
+//	    }
+//	}
+	/* Method getEmployeeById not Set span name End */
     public EmployeeModel getEmployeeById(Long id) {
-        Observation inventoryServiceObservation = Observation.createNotStarted("ankhang_stanid_call_infoservice",
-                this.observationRegistry);
-        
-        inventoryServiceObservation.lowCardinalityKeyValue("call", "info-app");
-        inventoryServiceObservation.start();
-        return inventoryServiceObservation.observe(() -> {
-        	Employee employee = employeeRepository.findEmpById(id);
-        	EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
-        	InfoModel infoModel = new InfoModel();
-        	infoModel = infoClient.getInfoDetail(id);
-        	employeeModel.setInfoModel(infoModel);
-            return employeeModel;
-        });    
+    	//Set span name 
+        Span span = tracer.nextSpan().name("ankhang_service_client").start();
+        try {
+            // Set the Trace ID on the current span
+            span.tag("Trace ID", span.context().traceIdString());
+            
+            Observation inventoryServiceObservation = Observation.createNotStarted("ankhang_stanid_call_infoservice",
+                    this.observationRegistry);
+            inventoryServiceObservation.lowCardinalityKeyValue("call_to_info-app", "info-app");
+            inventoryServiceObservation.start();
+           
+            try {
+                Employee employee = employeeRepository.findEmpById(id);
+                EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
+                InfoModel infoModel = infoClient.getInfoDetail(id);
+                employeeModel.setInfoModel(infoModel);
+                return employeeModel;
+            } finally {
+                inventoryServiceObservation.stop();
+            }
+        } finally {
+            span.finish();
+        }
     }
 	
+
     
     public InfoModel getInfoModelByIdUsingRestTemplate(Long id) {
     	
