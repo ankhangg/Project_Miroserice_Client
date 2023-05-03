@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.ankhang.model.EmployeeModel;
 import com.ankhang.service.EmployeeService;
 import feign.FeignException;
@@ -89,6 +90,5 @@ public class EmployeeController {
 	    EmployeeModel employeeModel = employeeService.getEmployeeById_NoCallServer(id);
 	    return CompletableFuture.supplyAsync(() -> employeeModel);
 	}
-	
 
 }
