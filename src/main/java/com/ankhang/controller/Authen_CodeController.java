@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
-public class Authen_CodeConbtroller {
+public class Authen_CodeController {
 	@GetMapping("/home")
 	public String admin() {
 		return "home";
