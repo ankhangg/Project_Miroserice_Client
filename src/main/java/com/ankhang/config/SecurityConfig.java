@@ -16,6 +16,8 @@ import jakarta.persistence.criteria.CriteriaBuilder.Case;
 
 
 
+
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -33,21 +35,39 @@ public class SecurityConfig {
 //    }
 	/* Case use authorization_code to authen web End */
 	
-
+	/* Case use client_credentials to authen rest API Start */
+//	@Bean
+//	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//	    http
+//	        .authorizeHttpRequests(authorize -> authorize
+//	           .requestMatchers("/addurl_here").permitAll()
+//	           .anyRequest().authenticated()
+//	        )
+//	        .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+//	    return http.build();
+//	}
+	
+	/* Case use client_credentials to authen rest API End */
+	
+	
+	/* Case use both client_credentials and authorization_code Start */
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 	    http
 	        .authorizeHttpRequests(authorize -> authorize
-	           .requestMatchers("/addurl_here").permitAll()
-	           .anyRequest().authenticated()
+	            .requestMatchers("/home").permitAll()
+	            .requestMatchers("/addurl_here").permitAll()
+	            .anyRequest().authenticated()
 	        )
+	        .oauth2Login()
+	        .and()
 	        .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+
 	    return http.build();
 	}
+	/* Case use both client_credentials and authorization_code End */
 	
 
-	
-    
 	/* use method instead of config in application.properties Start */
 //  @Bean
 //  public ClientRegistrationRepository clientRepository() {

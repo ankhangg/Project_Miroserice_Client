@@ -146,10 +146,11 @@ public class EmployeeService {
 //	    }
 //	}
 	/* Method getEmployeeById not Set span name End */
-    public EmployeeModel getEmployeeById(Long id) {
+    public EmployeeModel getEmployeeById(Long id, String token) {
+    	System.out.println("---Method Calling Info---");
     	//The purposes when use Span to trace a specific unit of work across MULTIPLE SERVICES
     	//The purposes when use Observation to record information about the behavior of a SERVICE
-    	//Set span name 
+    	//Set span name
         Span span = tracer.nextSpan().name("ankhang_service_client").start();
         try {
             // Set the Trace ID on the current span
@@ -162,7 +163,7 @@ public class EmployeeService {
             try {
                 Employee employee = employeeRepository.findEmpById(id);
                 EmployeeModel employeeModel = mapper.map(employee, EmployeeModel.class);
-                InfoModel infoModel = infoClient.getInfoDetail(id);
+                InfoModel infoModel = infoClient.getInfoDetail(id,token);
                 employeeModel.setInfoModel(infoModel);
 				/* Kafka_Add_Start */
                 applicationEventPublisher.publishEvent(new InfoModelTopicKafka(this, employeeModel.getEmpId(), infoModel.getInfoPhone(),"Send this notification to NotificationServer"));

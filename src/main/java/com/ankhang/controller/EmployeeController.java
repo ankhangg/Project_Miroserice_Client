@@ -6,12 +6,18 @@ import java.util.concurrent.TimeoutException;
 import org.modelmapper.internal.bytebuddy.asm.Advice.This;
 import org.modelmapper.internal.bytebuddy.implementation.bytecode.constant.MethodConstant.CanCache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import com.ankhang.model.Model_Demo;
 import com.ankhang.model.EmployeeModel;
 import com.ankhang.service.EmployeeService;
 import feign.FeignException;
@@ -26,6 +32,7 @@ public class EmployeeController {
 	
 	@Autowired
 	private EmployeeService employeeService;
+	
 	
 	/* Case not use @TimeLimiter Start */
 	//clientcall with the same name in config datasource properties
@@ -62,8 +69,11 @@ public class EmployeeController {
 		 * TimeUnit.SECONDS); // set timeout for the CompletableFuture
 		 */		
 		/* CanCache use timeout for the CompletableFuture end */
+		 Jwt jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	     String token = "Bearer " + jwt.getTokenValue();
+		
 		return CompletableFuture.supplyAsync(() -> {
-	        EmployeeModel employeeModel = employeeService.getEmployeeById(id);
+	        EmployeeModel employeeModel = employeeService.getEmployeeById(id,token);
 	        return employeeModel;
 	    });
 	}
@@ -89,6 +99,14 @@ public class EmployeeController {
 	    System.out.println("CAN NOT CALL METHOD getEmployeeDetail -> will run this fallbackMethod TimeoutException");
 	    EmployeeModel employeeModel = employeeService.getEmployeeById_NoCallServer(id);
 	    return CompletableFuture.supplyAsync(() -> employeeModel);
+	}
+	
+	@GetMapping("/addurl_here")
+	public Model_Demo getInfoBinKhang() {
+		Model_Demo model = new Model_Demo();
+		model.setAge("23");
+		model.setName("Luu Dang An Khang");
+		return model;
 	}
 
 }
